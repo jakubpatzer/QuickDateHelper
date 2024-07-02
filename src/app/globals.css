@@ -31,3 +31,32 @@ body {
     text-wrap: balance;
   }
 }
+
+
+/* CUSTOM */
+
+.custom-checkbox {
+  @apply w-8 h-8 appearance-none border-2 border-gray-300 rounded-md cursor-pointer;
+  position: relative;
+}
+
+.custom-checkbox:checked {
+  @apply border-green-500;
+}
+
+.custom-checkbox:checked::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 8px;
+  width: 11px;
+  height: 17px;
+  border: solid green;
+  border-width: 0 3px 3px 0;
+  transform: rotate(35deg);
+}
+
+.custom-checkbox:focus {
+  @apply outline-none;
+}
+
