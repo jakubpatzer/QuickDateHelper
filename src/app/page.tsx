@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Pagination from "@/components/Pagination";
-import ConfirmationModal from "@/components/ConfirmationModal";
-import jsPDF from "jspdf";
+import Modal from "@/components/Modal";
+import generatePDF from "@/utils/generatePDF";
 
 interface DataItem {
   id: number;
@@ -32,7 +32,8 @@ const PaginatedPage = () => {
   });
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [showChecked, setShowChecked] = useState<boolean>(false);
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false); // State for modal
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [modalVersion, setModalVersion] = useState<"reset" | "pdf">("reset");
 
   // Save data to localStorage whenever it changes
   useEffect(() => {
@@ -75,7 +76,8 @@ const PaginatedPage = () => {
   };
 
   const handleReset = (): void => {
-    setIsModalOpen(true); // Open the modal
+    setModalVersion("reset");
+    setIsModalOpen(true);
   };
 
   const handleConfirmReset = (): void => {
@@ -87,34 +89,24 @@ const PaginatedPage = () => {
     setData(resetData);
     localStorage.removeItem(LOCAL_STORAGE_KEY);
     setCurrentPage(1);
-    setIsModalOpen(false); // Close the modal after reset
+    setIsModalOpen(false);
   };
 
   const handleCancelReset = (): void => {
-    setIsModalOpen(false); // Close the modal if cancel is clicked
+    setIsModalOpen(false);
   };
 
   const handleShowChecked = (): void => {
     setShowChecked(!showChecked);
   };
 
-  const generatePDF = (): void => {
-    const doc = new jsPDF();
-
-    if (data) {
-      // Customize the content and formatting of the PDF
-      const formatedData: string = checkedItems
-        .map(
-          (item: DataItem) => `${item.name} ${item.notes && `(${item.notes})`}`
-        )
-        .join("\n\n");
-      doc.text(formatedData, 10, 10);
+  const HandleDownloadPDF = () => {
+    if (data && checkedItems.length > 0) {
+      generatePDF(checkedItems);
     } else {
-      doc.text("No data available", 10, 10);
+      setModalVersion("pdf");
+      setIsModalOpen(true);
     }
-
-    // Save the generated PDF
-    doc.save("randki_lista.pdf");
   };
 
   return (
@@ -156,6 +148,12 @@ const PaginatedPage = () => {
           Resetuj wszystko
         </button>
         <button
+          className="w-42 md:w-auto bg-green-600 hover:bg-green-700  text-white py-2 px-4 mb-4 rounded"
+          onClick={HandleDownloadPDF}
+        >
+          Pobierz PDF z listą
+        </button>
+        <button
           className="w-full md:w-auto bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded mb-4 md:mb-0"
           onClick={handleShowChecked}
         >
@@ -164,27 +162,23 @@ const PaginatedPage = () => {
       </div>
       {showChecked && (
         <div className="mt-4 text-center mb-8">
-          <h2 className="text-lg font-bold mb-2 text-white">Twoja lista:</h2>
+          <h2 className="text-2xl font-bold mb-4 text-white">Twoja lista:</h2>
           {checkedItems.length > 0 ? (
             <ul>
               {checkedItems.map((item: DataItem) => (
-                <li className="text-white" key={item.id}>{item.name}</li>
+                <li className="text-white text-xl mb-2" key={item.id}>
+                  {item.name}
+                </li>
               ))}
             </ul>
           ) : (
-            <p className="text-white">Jeszcze nikogo nie zaznaczyłeś.</p>
+            <p className="text-white text-xl">Jeszcze nikogo nie zaznaczyłeś.</p>
           )}
         </div>
       )}
-      <button
-        className="w-42 md:w-auto bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded"
-        onClick={generatePDF}
-      >
-        Pobierz PDF z listą
-      </button>
 
-      {/* Modal component */}
-      <ConfirmationModal
+      <Modal
+        version={modalVersion}
         isOpen={isModalOpen}
         onCancel={handleCancelReset}
         onConfirm={handleConfirmReset}
