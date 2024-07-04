@@ -19,8 +19,8 @@ const initialData: DataItem[] = Array.from({ length: 20 }, (_, i) => ({
   notes: "",
 }));
 
-const ITEMS_PER_PAGE = 1;
-const LOCAL_STORAGE_KEY = "paginatedData";
+const ITEMS_PER_PAGE: number = 1;
+const LOCAL_STORAGE_KEY: string = "paginatedData";
 
 const PaginatedPage = () => {
   const [data, setData] = useState<DataItem[]>(() => {
@@ -30,9 +30,9 @@ const PaginatedPage = () => {
     }
     return initialData;
   });
-  const [currentPage, setCurrentPage] = useState(1);
-  const [showChecked, setShowChecked] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false); // State for modal
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [showChecked, setShowChecked] = useState<boolean>(false);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false); // State for modal
 
   // Save data to localStorage whenever it changes
   useEffect(() => {
@@ -47,34 +47,38 @@ const PaginatedPage = () => {
     }
   }, []);
 
-  const totalPages = data.length;
+  const totalPages: number = data.length;
 
   const currentData = data.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
 
-  const handlePageChange = (page: number) => {
+  const checkedItems: DataItem[] = data.filter(
+    (item: DataItem) => item.checked
+  );
+
+  const handlePageChange = (page: number): void => {
     setCurrentPage(page);
   };
 
-  const handleCheckChange = (id: number) => {
+  const handleCheckChange = (id: number): void => {
     setData(
-      data.map((item) =>
+      data.map((item: DataItem) =>
         item.id === id ? { ...item, checked: !item.checked } : item
       )
     );
   };
 
-  const handleNotesChange = (id: number, notes: string) => {
+  const handleNotesChange = (id: number, notes: string): void => {
     setData(data.map((item) => (item.id === id ? { ...item, notes } : item)));
   };
 
-  const handleReset = () => {
+  const handleReset = (): void => {
     setIsModalOpen(true); // Open the modal
   };
 
-  const handleConfirmReset = () => {
+  const handleConfirmReset = (): void => {
     const resetData = initialData.map((item) => ({
       ...item,
       checked: false,
@@ -86,44 +90,43 @@ const PaginatedPage = () => {
     setIsModalOpen(false); // Close the modal after reset
   };
 
-  const handleCancelReset = () => {
+  const handleCancelReset = (): void => {
     setIsModalOpen(false); // Close the modal if cancel is clicked
   };
 
-  const handleShowChecked = () => {
+  const handleShowChecked = (): void => {
     setShowChecked(!showChecked);
   };
 
-  const generatePDF = () => {
+  const generatePDF = (): void => {
     const doc = new jsPDF();
 
     if (data) {
       // Customize the content and formatting of the PDF
-      const formated = data
-        .filter((e: DataItem) => e.checked)
-        .map((e: DataItem) => `${e.name} ${e.notes && `(${e.notes})`}`)
+      const formatedData: string = checkedItems
+        .map(
+          (item: DataItem) => `${item.name} ${item.notes && `(${item.notes})`}`
+        )
         .join("\n\n");
-      doc.text(formated, 10, 10);
+      doc.text(formatedData, 10, 10);
     } else {
       doc.text("No data available", 10, 10);
     }
 
     // Save the generated PDF
-    doc.save("data.pdf");
+    doc.save("randki_lista.pdf");
   };
-
-  const checkedItems = data.filter((item) => item.checked);
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4 text-center">
+      <h1 className="text-2xl font-bold mb-4 text-center text-white">
         Speed dating helper
       </h1>
       <ul>
-        {currentData.map((item) => (
+        {currentData.map((item: DataItem) => (
           <li key={item.id} className="border rounded-lg py-2 px-2 mb-2">
-            <div className="flex items-center mb-2">
-              <span className="mr-8 text-xl">{item.name}</span>
+            <div className="flex items-center justify-between mb-2">
+              <span className="mr-8 text-xl text-white">{item.name}</span>
               <input
                 className="mr-2 custom-checkbox"
                 type="checkbox"
@@ -161,15 +164,15 @@ const PaginatedPage = () => {
       </div>
       {showChecked && (
         <div className="mt-4 text-center mb-8">
-          <h2 className="text-lg font-bold mb-2">Twoja lista:</h2>
+          <h2 className="text-lg font-bold mb-2 text-white">Twoja lista:</h2>
           {checkedItems.length > 0 ? (
             <ul>
-              {checkedItems.map((item) => (
-                <li key={item.id}>{item.name}</li>
+              {checkedItems.map((item: DataItem) => (
+                <li className="text-white" key={item.id}>{item.name}</li>
               ))}
             </ul>
           ) : (
-            <p>Jeszcze nikogo nie zaznaczyłeś.</p>
+            <p className="text-white">Jeszcze nikogo nie zaznaczyłeś.</p>
           )}
         </div>
       )}
