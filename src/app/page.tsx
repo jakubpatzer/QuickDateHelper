@@ -59,7 +59,7 @@ const PaginatedPage = () => {
       }
       setIsLoaded(true);
     }
-  }, [TOTAL_PAGES]);
+  }, []);
 
   useEffect(() => {
     if (isLoaded) {
@@ -206,7 +206,7 @@ const PaginatedPage = () => {
             </ul>
           ) : (
             <p className="text-white text-xl">
-              You haven't marked anyone yet.
+              You haven&#39;t marked anyone yet.
             </p>
           )}
         </div>
