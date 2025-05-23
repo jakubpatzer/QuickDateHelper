@@ -13,9 +13,11 @@ interface DataItem {
   notes: string;
 }
 
-const initialData: DataItem[] = Array.from({ length: 20 }, (_, i) => ({
+const TOTAL_PAGES: number = 24;
+
+const initialData: DataItem[] = Array.from({ length: TOTAL_PAGES }, (_, i) => ({
   id: i + 1,
-  name: `Numer ${i + 1}`,
+  name: `Person ${i + 1}`,
   checked: false,
   notes: "",
 }));
@@ -24,13 +26,8 @@ const ITEMS_PER_PAGE: number = 1;
 const LOCAL_STORAGE_KEY: string = "paginatedData";
 
 const PaginatedPage = () => {
-  const [data, setData] = useState<DataItem[]>(() => {
-    if (typeof window !== "undefined") {
-      const storedData = localStorage.getItem(LOCAL_STORAGE_KEY);
-      return storedData ? JSON.parse(storedData) : initialData;
-    }
-    return initialData;
-  });
+  const [data, setData] = useState<DataItem[]>(initialData);
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [showChecked, setShowChecked] = useState<boolean>(false);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -38,9 +35,37 @@ const PaginatedPage = () => {
   const [isBigHud, setIsBigHud] = useState<boolean>(false);
 
   const bigHud = {
-    on: 'text-2xl',
-    off: 'text-md'
-  }
+    on: "text-2xl",
+    off: "text-md",
+  };
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (storedData) {
+        try {
+          const parsed = JSON.parse(storedData);
+          if (Array.isArray(parsed) && parsed.length === TOTAL_PAGES) {
+            setData(parsed);
+          } else {
+            localStorage.removeItem(LOCAL_STORAGE_KEY);
+            setData(initialData);
+          }
+        } catch {
+          setData(initialData);
+        }
+      } else {
+        setData(initialData);
+      }
+      setIsLoaded(true);
+    }
+  }, [TOTAL_PAGES]);
+
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+    }
+  }, [data, isLoaded]);
 
   const totalPages: number = data.length;
 
@@ -49,9 +74,8 @@ const PaginatedPage = () => {
     currentPage * ITEMS_PER_PAGE
   );
 
-  const checkedItems: DataItem[] = data.filter(
-    (item: DataItem) => item.checked
-  );
+  const checkedItems: DataItem[] = data.filter((item: DataItem) => item.checked);
+  const checkedIds: number[] = checkedItems.map(item => item.id);
 
   const handlePageChange = (page: number): void => {
     setCurrentPage(page);
@@ -75,8 +99,9 @@ const PaginatedPage = () => {
   };
 
   const handleConfirmReset = (): void => {
-    const resetData = initialData.map((item) => ({
-      ...item,
+    const resetData = Array.from({ length: TOTAL_PAGES }, (_, i) => ({
+      id: i + 1,
+      name: `Person ${i + 1}`,
       checked: false,
       notes: "",
     }));
@@ -104,18 +129,9 @@ const PaginatedPage = () => {
     }
   };
 
-  // Save data to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
-  }, [data]);
-
-  // Ensure data is loaded from localStorage on component mount
-  useEffect(() => {
-    const storedData = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (storedData) {
-      setData(JSON.parse(storedData));
-    }
-  }, []);
+  if (!isLoaded) {
+    return null;
+  }
 
   return (
     <div>
@@ -139,7 +155,7 @@ const PaginatedPage = () => {
               />
             </div>
             <textarea
-              className={`${isBigHud ? bigHud.on: bigHud.off} w-full border rounded p-2 text-black`}
+              className={`${isBigHud ? bigHud.on : bigHud.off} w-full border rounded p-2 text-black`}
               placeholder="Notatki..."
               value={item.notes}
               onChange={(e) => handleNotesChange(item.id, e.target.value)}
@@ -152,40 +168,46 @@ const PaginatedPage = () => {
         totalPages={totalPages}
         onPageChange={handlePageChange}
         isBigHud={isBigHud}
+        checkedIds={checkedIds}
       />
       <div className="flex flex-col mt-4 md:flex-row md:justify-center md:space-x-4">
         <button
-          className={`${isBigHud ? bigHud.on: bigHud.off} w-full md:w-auto bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded mb-4 md:mb-0`}
+          className={`${isBigHud ? bigHud.on : bigHud.off} w-full md:w-auto bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded mb-4 md:mb-0`}
           onClick={handleReset}
         >
-          Resetuj wszystko
+          Reset all
         </button>
         <button
-          className={`${isBigHud ? bigHud.on: bigHud.off} w-42 md:w-auto bg-green-600 hover:bg-green-700  text-white py-2 px-4 mb-4 rounded`}
+          className={`${isBigHud ? bigHud.on : bigHud.off} w-42 md:w-auto bg-green-600 hover:bg-green-700  text-white py-2 px-4 mb-4 rounded`}
           onClick={HandleDownloadPDF}
         >
-          Pobierz PDF z listą
+          Download PDF
         </button>
         <button
-          className={`${isBigHud ? bigHud.on: bigHud.off} w-full md:w-auto bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded mb-4 md:mb-0`}
+          className={`${isBigHud ? bigHud.on : bigHud.off} w-full md:w-auto bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded mb-4 md:mb-0`}
           onClick={handleShowChecked}
         >
-          {showChecked ? "Ukryj listę" : "Pokaz listę"}
+          {showChecked ? "Hide list" : "Show list"}
         </button>
       </div>
       {showChecked && (
         <div className="mt-4 text-center mb-8">
-          <h2 className="text-2xl font-bold mb-4 text-white">Twoja lista:</h2>
+          <h2 className="text-2xl font-bold mb-4 text-white">Your list:</h2>
           {checkedItems.length > 0 ? (
             <ul>
               {checkedItems.map((item: DataItem) => (
-                <li className={`${isBigHud ? bigHud.on: bigHud.off} text-white mb-4`} key={item.id}>
+                <li
+                  className={`${isBigHud ? bigHud.on : bigHud.off} text-white mb-4`}
+                  key={item.id}
+                >
                   {item.name}
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-white text-xl">Jeszcze nikogo nie zaznaczyłeś.</p>
+            <p className="text-white text-xl">
+              You haven't marked anyone yet.
+            </p>
           )}
         </div>
       )}
