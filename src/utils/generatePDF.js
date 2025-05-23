@@ -38,7 +38,7 @@ const generatePDF = async (data) => {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = "randki_lista.pdf";
+  link.download = "speed_dating_choices.pdf";
   link.click();
   URL.revokeObjectURL(url);
 };

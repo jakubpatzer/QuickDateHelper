@@ -139,7 +139,7 @@ const PaginatedPage = () => {
         Speed dating helper
       </h1>
       <div className="flex items-center justify-between mb-4 px-16">
-        <span className="text-white">Tryb Big HUD</span>
+        <span className="text-white">Big HUD</span>
         <Switch isChecked={isBigHud} onChange={setIsBigHud} />
       </div>
       <ul>
@@ -156,7 +156,7 @@ const PaginatedPage = () => {
             </div>
             <textarea
               className={`${isBigHud ? bigHud.on : bigHud.off} w-full border rounded p-2 text-black`}
-              placeholder="Notatki..."
+              placeholder="Notes..."
               value={item.notes}
               onChange={(e) => handleNotesChange(item.id, e.target.value)}
             />

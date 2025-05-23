@@ -30,7 +30,7 @@ const Pagination: React.FC<PaginationProps> = ({
             key={page}
             onClick={() => onPageChange(page)}
             className={`m-2 px-3 py-1 border rounded flex items-center justify-center
-              ${page === currentPage ? 'bg-blue-500 text-white' : isChecked ? 'bg-green-600 text-white' : 'bg-white text-blue-500'}
+              ${page === currentPage ? 'bg-blue-500 text-white' : isChecked ? 'bg-green-600 text-white' : 'bg-white text-slate-800'}
               ${isBigHud ? bigHud.on : bigHud.off}
               transition-colors duration-200`}
           >
